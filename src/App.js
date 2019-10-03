@@ -1,51 +1,57 @@
-import React from 'react';
-import PropTypes from "prop-types";
+import React from "react";
+import axios from "axios";
+import Movie from "./Movie";
+import "./App.css";
 
-function Drama({name, actor, rating}) {  
-  return (
-    <div>
-      <h1>I Like {name} by {actor}</h1>
-      <h3>{rating}</h3>
-    </div>
-  );
-}
+class App extends React.Component {
+  
+  state = {
+    isLoading: true,
+    movies: []
+  }
 
-Drama.propTypes = {
-  name: PropTypes.string.isRequired,
-  actor: PropTypes.string.isRequired,
-  rating: PropTypes.number.isRequired,
-};
+  getMovies = async () => {
+    const {
+      data: { 
+        data : { movies }
+      }
+    } = await axios.get("https://yts-proxy.now.sh/list_movies.json?sort_by=rating");
+    
+    this.setState({ movies, isLoading: false });
+  }
 
-const dramaILike = [
-  {
-    id: 1,
-    name: "My Mister",
-    actor: "IU",
-    rating: 5,
-  },
-  {
-    id: 2,
-    name: "Woods of Secret",
-    actor: "Cho SeungWoo",
-    rating: 4.8,
-  },
-  {
-    id: 3,
-    name: "Dokkaebi",
-    actor: "Kim GoEun"    ,
-    rating: 4.5,
-  },
-];
-
-function App() {
-  return (
-    <div>      
-      {dramaILike.map(drama => (
-        <Drama  key={drama.id} name={drama.name} actor={drama.actor} 
-          rating={drama.rating} />
-      ))}
-    </div>
-  );
+  componentDidMount () {    
+    this.getMovies();    
+  }
+  
+  render() {
+    const { isLoading, movies } = this.state;
+    return (
+      <div id="contents">
+        <section className="container">
+          { isLoading ? (
+            <div className="loader">
+              <span className="loader__text">Loading...</span>
+            </div>
+          ) :  (
+            <div className="movies">            
+              {movies.map(movie => (
+                <Movie
+                  key={movie.id} 
+                  id={movie.id} 
+                  year={movie.year} 
+                  title={movie.title} 
+                  summary={movie.summary} 
+                  poster={movie.medium_cover_image}
+                  genres={movie.genres} />
+              ))}
+            </div>
+          )
+          }
+        </section>
+      </div>
+    );
+  }
 }
 
 export default App;
